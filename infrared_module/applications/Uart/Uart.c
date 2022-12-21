@@ -57,11 +57,17 @@ static rt_err_t Uart1_input(rt_device_t dev, rt_size_t size)
     uart1_msg.dev = dev;
     uart1_msg.size = size;
     rt_device_read(uart1_msg.dev, 0, uart1_msg.data, uart1_msg.size);
-
     if(2 > size)
     {
         return RT_ERROR;
     }
+
+    //如果不是注册命令或者控制命令则直接过滤
+    if(!((REGISTER_CODE == uart1_msg.data[0]) || (getModuleInfo()->addr == uart1_msg.data[0])))
+    {
+        return RT_ERROR;
+    }
+
     crc16 |= uart1_msg.data[uart1_msg.size-1];
     crc16 <<= 8;
     crc16 |= uart1_msg.data[uart1_msg.size-2];
@@ -150,7 +156,6 @@ void UartTaskEntry(void* parameter)
             //1.串口1为和hub 通讯
             if(YES == uart1_msg.messageFlag)
             {
-
                 if(REGISTER_CODE == uart1_msg.data[0])
                 {
                     //1.如果uuid 符合则认为是回复注册命令
