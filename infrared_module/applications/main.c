@@ -57,6 +57,9 @@ void GpioInit(void)
     //串口
     rt_pin_mode(UART1_EN, PIN_MODE_OUTPUT);
     rt_pin_write(UART1_EN, NO); //使能为接受模式
+    //IO_CHECK
+    rt_pin_mode(IO_CHECK, PIN_MODE_INPUT);
+
 }
 
 u16 usModbusRTU_CRC(const u8* pucData, u32 ulLen)

@@ -41,6 +41,7 @@
 #define     LED_STATE           GET_PIN(B, 0)
 
 #define     UART1_EN            GET_PIN(A, 11)
+#define     IO_CHECK            GET_PIN(A, 7)
 
 //优先级
 #define     UART2_PRIORITY                  18

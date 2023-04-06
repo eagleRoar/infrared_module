@@ -77,6 +77,7 @@ void HomePage(type_page_t page)
     {
         ST7567_Puts("learn", &Font_8x16, 1);
     }
+
 //    //5.显示brand code
 //    itoa(getModuleInfo()->brand_code, temp, 10);
 //    ST7567_GotoXY(8 , 16 * 3);

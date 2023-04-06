@@ -103,6 +103,65 @@ static rt_err_t Uart2_input(rt_device_t dev, rt_size_t size)
 }
 
 /**
+ *
+ * @param period 时间周期
+ */
+void IoCheckProgram(rt_device_t uart, u16 period)
+{
+    static  u8      Laststate = 1;
+    static  u16      continueTime = 0;
+    u8 state = 0;
+
+    state = rt_pin_read(IO_CHECK);
+
+    if(1 == state)
+    {
+        LED_ON();
+    }
+
+    if(Laststate != state)
+    {
+        //持续时间
+        if(continueTime < period * 10)
+        {
+            continueTime += period;
+        }
+        else
+        {
+            Laststate = state;
+            if(1 == state)
+            {
+                //电平有低变高，发送关闭指令
+                if(SELECT_MATCH == getModuleInfo()->select)
+                {
+                    sendMatchOffTest(uart);
+                }
+                else if(SELECT_LEARN == getModuleInfo()->select)
+                {
+                    sendlearnOff(uart);
+                }
+            }
+            else if(0 == state)
+            {
+                //电平高变低，发送开指令
+                if(SELECT_MATCH == getModuleInfo()->select)
+                {
+                    sendMatchOnTest(uart);
+                }
+                else if(SELECT_LEARN == getModuleInfo()->select)
+                {
+                    sendlearnOn(uart);
+                }
+            }
+        }
+    }
+    else
+    {
+        continueTime = 0;
+    }
+}
+
+/**
  * @brief  : 红外
  */
 void UartTaskEntry(void* parameter)
@@ -113,9 +172,11 @@ void UartTaskEntry(void* parameter)
     static      u8              Timer100msTouch     = NO;
     static      u8              Timer1sTouch        = NO;
     static      u8              Timer5sTouch        = NO;
+    static      u8              Timer10sTouch       = NO;
     static      u16             time100ms           = 0;
     static      u16             time1S              = 0;
     static      u16             time5S              = 0;
+    static      u16             time10S             = 0;
     static      rt_device_t     uart1_serial;
     static      rt_device_t     uart2_serial;
     type_recv_match             recv_match;
@@ -149,10 +210,14 @@ void UartTaskEntry(void* parameter)
     {
         time1S = TimerTask(&time1S, 1000/UART_PERIOD, &Timer1sTouch);                       //1s定时任务
         time5S = TimerTask(&time5S, 5000/UART_PERIOD, &Timer5sTouch);                       //5s定时任务
+        time10S = TimerTask(&time10S, 10000/UART_PERIOD, &Timer10sTouch);                       //5s定时任务
         time100ms = TimerTask(&time100ms, 100/UART_PERIOD, &Timer100msTouch);                       //100ms定时任务
 
         //50ms
         {
+            //单品功能:支持检测外部电平变化
+            IoCheckProgram(uart2_serial, UART_PERIOD);
+
             //1.串口1为和hub 通讯
             if(YES == uart1_msg.messageFlag)
             {
@@ -394,18 +459,6 @@ void UartTaskEntry(void* parameter)
                 }
             }
 
-            //和hub通讯部分
-            switch (master_event)
-            {
-                //1.发送注册
-                case EVENT_REGISTER:
-                    //1.发送注册码给主机
-                    sendRegisterToMaster(uart1_serial, data);
-                    break;
-                default:
-                    break;
-            }
-
             //灯光部分
             if(NO == getModuleInfo()->find_location)
             {
@@ -429,7 +482,22 @@ void UartTaskEntry(void* parameter)
             {
                 setMasterEvent(EVENT_REGISTER);
             }
+        }
 
+        //10s事件
+        if(YES == Timer10sTouch)
+        {
+            //和hub通讯部分
+            switch (master_event)
+            {
+                //1.发送注册
+                case EVENT_REGISTER:
+                    //1.发送注册码给主机
+                    sendRegisterToMaster(uart1_serial, data);
+                    break;
+                default:
+                    break;
+            }
         }
 
         rt_thread_mdelay(UART_PERIOD);
