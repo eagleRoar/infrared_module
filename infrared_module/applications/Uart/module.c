@@ -141,11 +141,11 @@ u16 getRegister(u16 addr)
         break;
         //3.地址
         case REGISTER_ADDR:
-            value = getModuleInfo()->addr;
+            value = (getModuleInfo()->addr >> 8) | (getModuleInfo()->addr << 8);
         break;
         //4.版本号
         case REGISTER_TYPE:
-            value = getModuleInfo()->type;
+            value = (getModuleInfo()->type >> 8) | (getModuleInfo()->type << 8);
         break;
         case REGISTER_CTRL:
             value = (getModuleInfo()->ctrl >> 8) | (getModuleInfo()->ctrl << 8);
@@ -195,13 +195,12 @@ void replyDataToMaster(u8 rw, u8 *data, u16 reg, u8 len)
         {
             buf[0] = getModuleInfo()->addr;
             buf[1] = rw;
-            buf[2] = 0x00;
-            buf[3] = len;
-            rt_memcpy(&buf[4], data, len);
-            buf[len + 4] = usModbusRTU_CRC(buf, len + 4);
-            buf[len + 5] = usModbusRTU_CRC(buf, len + 4) >> 8;
+            buf[2] = len;
+            rt_memcpy(&buf[3], data, len);
+            buf[len + 3] = usModbusRTU_CRC(buf, len + 3);
+            buf[len + 4] = usModbusRTU_CRC(buf, len + 3) >> 8;
 
-            sendMessageToMaster(buf, len + 4+ 2);
+            sendMessageToMaster(buf, len + 3+ 2);
         }
         else if(WRITE_SINGLE == rw)
         {

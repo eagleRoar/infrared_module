@@ -1257,7 +1257,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     struct stm32_uart *uart;
     RT_ASSERT(huart != NULL);
     uart = (struct stm32_uart *)huart;
-    dma_isr(&uart->serial);
+//    dma_isr(&uart->serial);//Justin debug
 }
 
 /**
@@ -1272,7 +1272,7 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)
     struct stm32_uart *uart;
     RT_ASSERT(huart != NULL);
     uart = (struct stm32_uart *)huart;
-    dma_isr(&uart->serial);
+//    dma_isr(&uart->serial);//Justin debug
 }
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
@@ -1382,11 +1382,6 @@ int rt_hw_usart_init(void)
     {
         uart_obj[i].config = &uart_config[i];
         uart_obj[i].serial.ops    = &stm32_uart_ops;
-
-//        if(!rt_memcmp(uart_config[i].name, "uart2", 5))
-//        {
-//            config.baud_rate = BAUD_RATE_9600;
-//        }
 
         uart_obj[i].serial.config = config;
         /* register UART device */

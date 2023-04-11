@@ -863,7 +863,7 @@ static rt_size_t rt_serial_write(struct rt_device *dev,
     {
         return _serial_int_tx(serial, (const rt_uint8_t *)buffer, size);
     }
-#ifdef RT_SERIAL_USING_DMA    
+#ifdef RT_SERIAL_USING_DMA
     else if (dev->open_flag & RT_DEVICE_FLAG_DMA_TX)
     {
         return _serial_dma_tx(serial, (const rt_uint8_t *)buffer, size);

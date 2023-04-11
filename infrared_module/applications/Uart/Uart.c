@@ -22,6 +22,7 @@ struct      rx_msg                      uart1_msg;              //接收串口�
 struct      rx_msg                      uart2_msg;              //接收串口数据以及相关消息
 
 extern u32             pageInfor;   //只支持最多四级目录
+static      rt_device_t     uart1_serial;
 
 //获取模块相关信息
 module_info_t *getModuleInfo(void)
@@ -164,6 +165,7 @@ void IoCheckProgram(rt_device_t uart, u16 period)
 /**
  * @brief  : 红外
  */
+
 void UartTaskEntry(void* parameter)
 {
     u8                          data[16]            = {0};
@@ -177,7 +179,7 @@ void UartTaskEntry(void* parameter)
     static      u16             time1S              = 0;
     static      u16             time5S              = 0;
     static      u16             time10S             = 0;
-    static      rt_device_t     uart1_serial;
+//    static      rt_device_t     uart1_serial;
     static      rt_device_t     uart2_serial;
     type_recv_match             recv_match;
     type_codedata_recv          recvResult;
@@ -186,6 +188,7 @@ void UartTaskEntry(void* parameter)
     static      module_info_t   modulePre           = {0};
     static      u16             ctrl_pre            = 0;
     static      u16             find_location_cnt   = 0;
+    static      u8              startCheckIo        = NO;
 
     /* 查找串口设备 */
     uart1_serial = rt_device_find(DEVICE_UART1);
@@ -206,6 +209,9 @@ void UartTaskEntry(void* parameter)
     initModuleInfo();
     //发送注册命令
     setMasterEvent(EVENT_REGISTER);
+
+    getModuleInfo()->ctrl = 0x0000;
+    ctrl_pre = getModuleInfo()->ctrl;
     while (1)
     {
         time1S = TimerTask(&time1S, 1000/UART_PERIOD, &Timer1sTouch);                       //1s定时任务
@@ -216,7 +222,10 @@ void UartTaskEntry(void* parameter)
         //50ms
         {
             //单品功能:支持检测外部电平变化
-            IoCheckProgram(uart2_serial, UART_PERIOD);
+//            if(YES == startCheckIo)
+            {
+                IoCheckProgram(uart2_serial, UART_PERIOD);
+            }
 
             //1.串口1为和hub 通讯
             if(YES == uart1_msg.messageFlag)
@@ -247,7 +256,6 @@ void UartTaskEntry(void* parameter)
                     //解析数据
                     getModuleInfo()->register_state = REGISTER_SUCESS;
                     setMasterEvent(EVENT_CLEAN);
-
                 }
 
                 uart1_msg.messageFlag = NO;
@@ -256,7 +264,6 @@ void UartTaskEntry(void* parameter)
             //2.串口2为和空调通讯
             if(YES == uart2_msg.messageFlag)
             {
-
                 switch (infrared_event.event) {
                     case EVENT_SEND_MATCH:
                         //1.如果返回的命令符合码库格式长度，则接受
@@ -472,6 +479,7 @@ void UartTaskEntry(void* parameter)
                     LED_TEST();
                 }
             }
+
         }
 
         //5s事件
@@ -487,6 +495,8 @@ void UartTaskEntry(void* parameter)
         //10s事件
         if(YES == Timer10sTouch)
         {
+            startCheckIo = YES;
+
             //和hub通讯部分
             switch (master_event)
             {
@@ -498,6 +508,8 @@ void UartTaskEntry(void* parameter)
                 default:
                     break;
             }
+
+
         }
 
         rt_thread_mdelay(UART_PERIOD);

@@ -128,6 +128,11 @@ void LED_ON(void)
     rt_pin_write(LED_STATE, NO);
 }
 
+void LED_OFF(void)
+{
+    rt_pin_write(LED_STATE, YES);
+}
+
 void LED_TEST(void)
 {
     static  u8      state = 0;
