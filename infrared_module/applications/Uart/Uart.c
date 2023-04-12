@@ -188,7 +188,7 @@ void UartTaskEntry(void* parameter)
     static      module_info_t   modulePre           = {0};
     static      u16             ctrl_pre            = 0;
     static      u16             find_location_cnt   = 0;
-    static      u8              startCheckIo        = NO;
+    static      u8              startFlag           = NO;
 
     /* 查找串口设备 */
     uart1_serial = rt_device_find(DEVICE_UART1);
@@ -222,10 +222,7 @@ void UartTaskEntry(void* parameter)
         //50ms
         {
             //单品功能:支持检测外部电平变化
-//            if(YES == startCheckIo)
-            {
-                IoCheckProgram(uart2_serial, UART_PERIOD);
-            }
+            IoCheckProgram(uart2_serial, UART_PERIOD);
 
             //1.串口1为和hub 通讯
             if(YES == uart1_msg.messageFlag)
@@ -480,6 +477,11 @@ void UartTaskEntry(void* parameter)
                 }
             }
 
+            if(NO == startFlag)
+            {
+                sendRegisterToMaster(uart1_serial, data);
+                startFlag = YES;
+            }
         }
 
         //5s事件
@@ -495,8 +497,6 @@ void UartTaskEntry(void* parameter)
         //10s事件
         if(YES == Timer10sTouch)
         {
-            startCheckIo = YES;
-
             //和hub通讯部分
             switch (master_event)
             {
@@ -508,7 +508,6 @@ void UartTaskEntry(void* parameter)
                 default:
                     break;
             }
-
 
         }
 
