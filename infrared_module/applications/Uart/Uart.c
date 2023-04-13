@@ -115,11 +115,6 @@ void IoCheckProgram(rt_device_t uart, u16 period)
 
     state = rt_pin_read(IO_CHECK);
 
-    if(1 == state)
-    {
-        LED_ON();
-    }
-
     if(Laststate != state)
     {
         //持续时间
@@ -130,6 +125,7 @@ void IoCheckProgram(rt_device_t uart, u16 period)
         else
         {
             Laststate = state;
+
             if(1 == state)
             {
                 //电平有低变高，发送关闭指令
@@ -189,6 +185,7 @@ void UartTaskEntry(void* parameter)
     static      u16             ctrl_pre            = 0;
     static      u16             find_location_cnt   = 0;
     static      u8              startFlag           = NO;
+    static      u8              startCheckIo        = NO;
 
     /* 查找串口设备 */
     uart1_serial = rt_device_find(DEVICE_UART1);
@@ -212,6 +209,7 @@ void UartTaskEntry(void* parameter)
 
     getModuleInfo()->ctrl = 0x0000;
     ctrl_pre = getModuleInfo()->ctrl;
+
     while (1)
     {
         time1S = TimerTask(&time1S, 1000/UART_PERIOD, &Timer1sTouch);                       //1s定时任务
@@ -222,7 +220,10 @@ void UartTaskEntry(void* parameter)
         //50ms
         {
             //单品功能:支持检测外部电平变化
-            IoCheckProgram(uart2_serial, UART_PERIOD);
+            if(YES == startCheckIo)
+            {
+                IoCheckProgram(uart2_serial, UART_PERIOD);
+            }
 
             //1.串口1为和hub 通讯
             if(YES == uart1_msg.messageFlag)
@@ -509,6 +510,7 @@ void UartTaskEntry(void* parameter)
                     break;
             }
 
+            startCheckIo = YES;
         }
 
         rt_thread_mdelay(UART_PERIOD);
