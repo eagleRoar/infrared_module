@@ -17,6 +17,9 @@
 #include "infrared.h"
 #include "module.h"
 
+#define     CHECK_IO_ON     0
+#define     CHECK_IO_OFF    1
+
 static      module_info_t               module_info;
 struct      rx_msg                      uart1_msg;              //接收串口数据以及相关消息
 struct      rx_msg                      uart2_msg;              //接收串口数据以及相关消息
@@ -109,16 +112,18 @@ static rt_err_t Uart2_input(rt_device_t dev, rt_size_t size)
  */
 void IoCheckProgram(rt_device_t uart, u16 period)
 {
-    static  u8      Laststate = 1;
-    static  u16      continueTime = 0;
+
+    static  u8       Laststate                  = 1;
+    static  u16      continueTime               = 0;
+
     u8 state = 0;
 
     state = rt_pin_read(IO_CHECK);
 
+    //1.计算之前时刻的持续时长
     if(Laststate != state)
     {
-        //持续时间
-        if(continueTime < period * 10)
+        if(continueTime < period * 30)
         {
             continueTime += period;
         }
@@ -126,21 +131,8 @@ void IoCheckProgram(rt_device_t uart, u16 period)
         {
             Laststate = state;
 
-            if(1 == state)
+            if(CHECK_IO_ON == state)
             {
-                //电平有低变高，发送关闭指令
-                if(SELECT_MATCH == getModuleInfo()->select)
-                {
-                    sendMatchOffTest(uart);
-                }
-                else if(SELECT_LEARN == getModuleInfo()->select)
-                {
-                    sendlearnOff(uart);
-                }
-            }
-            else if(0 == state)
-            {
-                //电平高变低，发送开指令
                 if(SELECT_MATCH == getModuleInfo()->select)
                 {
                     sendMatchOnTest(uart);
@@ -150,11 +142,23 @@ void IoCheckProgram(rt_device_t uart, u16 period)
                     sendlearnOn(uart);
                 }
             }
+            else if(CHECK_IO_OFF == state)
+            {
+                if(SELECT_MATCH == getModuleInfo()->select)
+                {
+                    sendMatchOffTest(uart);
+                }
+                else if(SELECT_LEARN == getModuleInfo()->select)
+                {
+                    sendlearnOff(uart);
+                }
+            }
         }
     }
     else
     {
         continueTime = 0;
+
     }
 }
 
@@ -209,7 +213,7 @@ void UartTaskEntry(void* parameter)
 
     getModuleInfo()->ctrl = 0x0000;
     ctrl_pre = getModuleInfo()->ctrl;
-
+    getModuleInfo()->find_location = NO;
     while (1)
     {
         time1S = TimerTask(&time1S, 1000/UART_PERIOD, &Timer1sTouch);                       //1s定时任务
@@ -220,7 +224,7 @@ void UartTaskEntry(void* parameter)
         //50ms
         {
             //单品功能:支持检测外部电平变化
-            if(YES == startCheckIo)
+            if(REGISTER_SUCESS != getModuleInfo()->register_state)
             {
                 IoCheckProgram(uart2_serial, UART_PERIOD);
             }
