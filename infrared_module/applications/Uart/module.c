@@ -57,7 +57,7 @@ rt_err_t analyzeMasterData(u8 *data, rt_size_t size)
     rt_err_t    ret             = RT_EOK;
     u8          num             = 0;
     u8          index           = 0;
-    u8          temp            = 0;
+    u16          temp            = 0;
     u16         *replyData      = RT_NULL;
     u16         reg             = 0;
 
@@ -128,7 +128,7 @@ u16 getRegister(u16 addr)
         break;
         //1.版本号
         case REGISTER_VERSION:
-            value = getModuleInfo()->version;
+            value = getModuleInfo()->Version;
         break;
         //2.uuid
         case REGISTER_UUID1:

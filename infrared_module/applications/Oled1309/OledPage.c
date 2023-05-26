@@ -14,6 +14,7 @@
 #include "ascii_fonts.h"
 #include "Uart.h"
 #include "infrared.h"
+#include "stdio.h"
 
 u8       matchRes    = RES_NULL;
 extern u32             pageInfor;   //只支持最多四级目录
@@ -37,13 +38,17 @@ u8 getTempByCtrl(u16 data)
 void HomePage(type_page_t page)
 {
     char    temp[5] = " ";
+    char    name[22] = " ";
 
     //1.清除之前屏幕内容
     clear_screen();
 
     //2.显示选择项 setting
     ST7567_GotoXY(0, 0);
-    ST7567_Puts(" Setting             ", &Font_6x12, 0);
+//    sprintf(name, " Setting       %s",IAR_VERSION);
+    strcpy(name, " Setting       ");
+    strcat(name, IAR_VERSION);
+    ST7567_Puts(name, &Font_6x12, 0);
 
     //3.显示温度
     itoa(getTempByCtrl(getModuleInfo()->ctrl), temp, 10);

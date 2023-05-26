@@ -72,6 +72,8 @@ struct codeDataRecvMatch{
 #define             REGISTER_CODE           0xFA
 #define             INFRARED_TYPE           0xB4
 
+#define     IAR_VERSION     "V1.0.0"
+
 //寄存器
 #define             REGISTER_LOCATION       0x0000
 #define             REGISTER_VERSION        0x0001      //版本号
@@ -88,7 +90,7 @@ struct module_info
     u16     crc;                        //标志已经有存储了,在第一次有使用
     u8      addr;                       //modbus 通讯地址
     u8      type;                       //type
-    u8      version;                    //版本号
+    u8      Version;                    //版本号
     u8      register_state;             //注册状态
     u16     brand_code;                 //接收到的代号码
     u16     ctrl;

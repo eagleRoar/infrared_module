@@ -214,6 +214,7 @@ void UartTaskEntry(void* parameter)
     getModuleInfo()->ctrl = 0x0000;
     ctrl_pre = getModuleInfo()->ctrl;
     getModuleInfo()->find_location = NO;
+    getModuleInfo()->Version = 2;
     while (1)
     {
         time1S = TimerTask(&time1S, 1000/UART_PERIOD, &Timer1sTouch);                       //1s定时任务
