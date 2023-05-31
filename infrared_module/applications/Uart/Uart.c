@@ -61,6 +61,7 @@ static rt_err_t Uart1_input(rt_device_t dev, rt_size_t size)
     uart1_msg.dev = dev;
     uart1_msg.size = size;
     rt_device_read(uart1_msg.dev, 0, uart1_msg.data, uart1_msg.size);
+
     if(2 > size)
     {
         return RT_ERROR;
@@ -190,6 +191,8 @@ void UartTaskEntry(void* parameter)
     static      u16             find_location_cnt   = 0;
     static      u8              startFlag           = NO;
     static      u8              startCheckIo        = NO;
+    static      u8              connect_monitor     = 0;
+    static      u8              sendCmdCnt          = 0;    //连续发送3次
 
     /* 查找串口设备 */
     uart1_serial = rt_device_find(DEVICE_UART1);
@@ -259,6 +262,7 @@ void UartTaskEntry(void* parameter)
                     //解析数据
                     getModuleInfo()->register_state = REGISTER_SUCESS;
                     setMasterEvent(EVENT_CLEAN);
+                    connect_monitor = 0;
                 }
 
                 uart1_msg.messageFlag = NO;
@@ -360,14 +364,6 @@ void UartTaskEntry(void* parameter)
                 rt_memcpy((u8 *)&modulePre, (u8 *)getModuleInfo(), sizeof(module_info_t));
 
                 setDataToFlah(DATA_BLOCK_START, (u8 *)getModuleInfo(), sizeof(module_info_t));
-            }
-
-            //4.如果收到控制指令的话需要发送,
-            if(ctrl_pre != getModuleInfo()->ctrl)
-            {
-                ctrl_pre = getModuleInfo()->ctrl;
-
-                sendCtrlCommandToCodeData(uart2_serial);
             }
 
         }
@@ -487,6 +483,33 @@ void UartTaskEntry(void* parameter)
             {
                 sendRegisterToMaster(uart1_serial, data);
                 startFlag = YES;
+            }
+
+            //1.如果超过30s没收到消息就重新注册
+            if(connect_monitor < 30)
+            {
+                connect_monitor ++;
+            }
+            else
+            {
+                setMasterEvent(EVENT_REGISTER);
+            }
+
+            //4.如果收到控制指令的话需要发送,连续发送3次
+            if(ctrl_pre != getModuleInfo()->ctrl)
+            {
+                ctrl_pre = getModuleInfo()->ctrl;
+
+                sendCtrlCommandToCodeData(uart2_serial);
+                sendCmdCnt = 0;
+            }
+            else
+            {
+                if(sendCmdCnt < 2)
+                {
+                    sendCmdCnt ++;
+                    sendCtrlCommandToCodeData(uart2_serial);
+                }
             }
         }
 
