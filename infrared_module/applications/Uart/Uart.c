@@ -192,7 +192,7 @@ void UartTaskEntry(void* parameter)
     static      u8              startFlag           = NO;
     static      u8              startCheckIo        = NO;
     static      u8              connect_monitor     = 0;
-    static      u8              sendCmdCnt          = 0;    //连续发送3次
+    static      u8              sendCmdCnt          = 2;    //连续发送3次
 
     /* 查找串口设备 */
     uart1_serial = rt_device_find(DEVICE_UART1);
@@ -214,7 +214,7 @@ void UartTaskEntry(void* parameter)
     //发送注册命令
     setMasterEvent(EVENT_REGISTER);
 
-    getModuleInfo()->ctrl = 0x0000;
+    //getModuleInfo()->ctrl = 0x0000;
     ctrl_pre = getModuleInfo()->ctrl;
     getModuleInfo()->find_location = NO;
     getModuleInfo()->Version = 2;
