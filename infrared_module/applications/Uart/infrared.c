@@ -80,6 +80,17 @@ void sendCtrlCommandToCodeData(rt_device_t device)
         data[10] = 0x00;
         data[11] = checkResult(data, 11);
         rt_device_write(device, 0, data, 12);
+
+        if((getModuleInfo()->ctrl & 0x8000) > 0)
+        {
+            setSwitchState(YES);
+        }
+        else
+        {
+            setSwitchState(NO);
+        }
+
+        setNowTemp(getTempByCtrl(getModuleInfo()->ctrl));
     }
     else if(SELECT_LEARN == getModuleInfo()->select)
     {
@@ -114,6 +125,10 @@ void sendMatchOnTest(rt_device_t device)
     data[10] = 0x00;
     data[11] = checkResult(data, 11);
     rt_device_write(device, 0, data, 12);
+    setSwitchState(YES);
+    u16 ctr = 0xE000;
+    getModuleInfo()->ctrl = ctr;
+    setNowTemp(getTempByCtrl(ctr));
 }
 
 
@@ -134,6 +149,10 @@ void sendMatchOffTest(rt_device_t device)
     data[10] = 0x00;
     data[11] = checkResult(data, 11);
     rt_device_write(device, 0, data, 12);
+    setSwitchState(NO);
+    u16 ctr = 0x6000;
+    getModuleInfo()->ctrl = ctr;
+    setNowTemp(getTempByCtrl(ctr));
 }
 
 void sendlearnOn(rt_device_t device)
@@ -152,6 +171,10 @@ void sendlearnOn(rt_device_t device)
     data[8] = 0x01;
     data[9] = checkResult(data, 9);
     rt_device_write(device, 0, data, 10);
+    setSwitchState(YES);
+    u16 ctr = 0xE000;
+    getModuleInfo()->ctrl = ctr;
+    setNowTemp(getTempByCtrl(ctr));
 }
 
 void sendlearnOff(rt_device_t device)
@@ -170,6 +193,10 @@ void sendlearnOff(rt_device_t device)
     data[8] = 0x01;
     data[9] = checkResult(data, 9);
     rt_device_write(device, 0, data, 10);
+    setSwitchState(NO);
+    u16 ctr = 0x6000;
+    getModuleInfo()->ctrl = ctr;
+    setNowTemp(getTempByCtrl(ctr));
 }
 
 void sendInLearnOnMode(rt_device_t device)

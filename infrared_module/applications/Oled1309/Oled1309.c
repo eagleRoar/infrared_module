@@ -25,9 +25,9 @@ extern "C" {
 #define  GO_RIGHT  1
 #define  GO_LEFT   2
 
-u8              reflash_flag        = NO;
+u8              reflash_flag                = NO;
 type_page_t     pageSelect;
-u32             pageInfor       = 0x00000000;   //只支持最多四级目录
+u32             pageInfor                   = 0x00000000;   //只支持最多四级目录
 time_t          backlightTime;
 
 #define OLED_SPI_PIN_CLK                    29//PB13
@@ -345,7 +345,8 @@ void OledTaskEntry(void* parameter)
         if(YES == Timer1sTouch)
         {
             monitorBackLight(&backlightTime);
-            if(SELECT_MODE_PAGE == nowPage)
+            if((SELECT_MODE_PAGE == nowPage) ||
+               (HOME_PAGE == nowPage))
             {
                 //需要刷新
                 reflash_flag = YES;

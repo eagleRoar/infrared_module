@@ -145,4 +145,8 @@ module_info_t *getModuleInfo(void);
 void UartTaskEntry(void*);
 void UartTaskInit(void);
 void sendMessageToMaster(u8 *, u8);
+u8 getSwitchState(void);
+void setSwitchState(u8 state);
+u8 getNowTemp(void);
+void setNowTemp(u8 temp);
 #endif /* APPLICATIONS_UART_H_ */

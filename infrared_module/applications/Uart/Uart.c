@@ -26,6 +26,28 @@ struct      rx_msg                      uart2_msg;              //接收串口�
 
 extern u32             pageInfor;   //只支持最多四级目录
 static      rt_device_t     uart1_serial;
+u8              switchState                 = NO;
+u8              nowTemp                     = 0;
+
+u8 getSwitchState(void)
+{
+    return switchState;
+}
+
+void setSwitchState(u8 state)
+{
+    switchState = state;
+}
+
+u8 getNowTemp(void)
+{
+    return nowTemp;
+}
+
+void setNowTemp(u8 temp)
+{
+    nowTemp = temp;
+}
 
 //获取模块相关信息
 module_info_t *getModuleInfo(void)
@@ -218,6 +240,8 @@ void UartTaskEntry(void* parameter)
     ctrl_pre = getModuleInfo()->ctrl;
     getModuleInfo()->find_location = NO;
     getModuleInfo()->Version = 2;
+    setSwitchState(NO);
+    setNowTemp(getTempByCtrl(0x6000));
     while (1)
     {
         time1S = TimerTask(&time1S, 1000/UART_PERIOD, &Timer1sTouch);                       //1s定时任务

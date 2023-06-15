@@ -51,7 +51,8 @@ void HomePage(type_page_t page)
     ST7567_Puts(name, &Font_6x12, 0);
 
     //3.显示温度
-    itoa(getTempByCtrl(getModuleInfo()->ctrl), temp, 10);
+//    itoa(getTempByCtrl(getModuleInfo()->ctrl), temp, 10);
+    itoa(getNowTemp(), temp, 10);
     ST7567_GotoXY(8, 22);
     ST7567_Puts(temp, &Font_16x32, 1);
     //显示单位
@@ -61,7 +62,7 @@ void HomePage(type_page_t page)
 
     //4.显示开关状态
     ST7567_GotoXY(78, 22);
-    if((getModuleInfo()->ctrl & 0x8000) > 0)
+    if(YES == getSwitchState())
     {
         ST7567_Puts("On", &Font_8x16, 1);
     }
